@@ -3,30 +3,60 @@
 @tailwind utilities;
 
 :root {
-  /* MemeFlow Theme - Vibrant & Playful */
+  /* MemeFlow Theme - Vibrant Purple/Pink Gradient */
   --color-bg: hsl(240, 12%, 8%);
   --color-fg: hsl(0, 0%, 98%);
-  --color-accent: hsl(340, 95%, 58%);
-  --color-primary: hsl(260, 85%, 58%);
-  --color-success: hsl(142, 76%, 45%);
+  --color-accent: hsl(260, 85%, 58%);
   --color-surface: hsl(240, 10%, 12%);
-  --color-warning: hsl(38, 92%, 50%);
-  --color-text-muted: hsl(240, 5%, 65%);
   --color-surface-hover: hsl(240, 10%, 16%);
-  
-  --radius-lg: 20px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
-  
-  --shadow-card: 0 8px 32px hsla(240, 20%, 4%, 0.5);
-  --shadow-glow: 0 0 24px hsla(340, 95%, 58%, 0.4);
-  --shadow-button: 0 4px 12px hsla(260, 85%, 58%, 0.3);
-  
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
+  --color-text-muted: hsl(240, 5%, 65%);
+  --color-success: hsl(142, 76%, 45%);
+  --color-warning: hsl(38, 92%, 50%);
+  --color-accent-secondary: hsl(340, 95%, 58%);
+}
+
+[data-theme="celo"] {
+  --color-bg: hsl(0, 0%, 0%);
+  --color-fg: hsl(0, 0%, 100%);
+  --color-accent: hsl(48, 97%, 68%);
+  --color-surface: hsl(0, 0%, 8%);
+  --color-surface-hover: hsl(0, 0%, 12%);
+  --color-text-muted: hsl(0, 0%, 60%);
+  --color-success: hsl(142, 76%, 45%);
+  --color-warning: hsl(38, 92%, 50%);
+}
+
+[data-theme="solana"] {
+  --color-bg: hsl(270, 50%, 10%);
+  --color-fg: hsl(0, 0%, 98%);
+  --color-accent: hsl(280, 100%, 70%);
+  --color-surface: hsl(270, 40%, 15%);
+  --color-surface-hover: hsl(270, 40%, 20%);
+  --color-text-muted: hsl(270, 20%, 65%);
+  --color-success: hsl(142, 76%, 45%);
+  --color-warning: hsl(38, 92%, 50%);
+}
+
+[data-theme="base"] {
+  --color-bg: hsl(220, 50%, 10%);
+  --color-fg: hsl(0, 0%, 98%);
+  --color-accent: hsl(220, 100%, 50%);
+  --color-surface: hsl(220, 40%, 15%);
+  --color-surface-hover: hsl(220, 40%, 20%);
+  --color-text-muted: hsl(220, 20%, 65%);
+  --color-success: hsl(142, 76%, 45%);
+  --color-warning: hsl(38, 92%, 50%);
+}
+
+[data-theme="coinbase"] {
+  --color-bg: hsl(220, 60%, 8%);
+  --color-fg: hsl(0, 0%, 98%);
+  --color-accent: hsl(220, 100%, 50%);
+  --color-surface: hsl(220, 50%, 12%);
+  --color-surface-hover: hsl(220, 50%, 16%);
+  --color-text-muted: hsl(220, 20%, 65%);
+  --color-success: hsl(142, 76%, 45%);
+  --color-warning: hsl(38, 92%, 50%);
 }
 
 @layer base {
@@ -35,36 +65,42 @@
   }
   
   body {
-    @apply bg-bg text-fg;
+    @apply bg-bg text-fg antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer components {
   .glass-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    @apply bg-surface backdrop-blur-xl border border-white/10 rounded-lg;
   }
-  
+
   .btn-primary {
     @apply bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-button;
   }
-  
+
   .btn-secondary {
-    @apply glass-card px-6 py-3 rounded-lg font-medium hover:bg-opacity-20 transition-all duration-200;
+    @apply border border-white/20 bg-surface text-fg px-6 py-3 rounded-lg font-medium hover:bg-surfaceHover transition-all duration-200;
   }
-  
+
   .btn-ghost {
-    @apply text-fg hover:bg-surface-hover px-4 py-2 rounded-lg transition-all duration-200;
+    @apply text-fg px-4 py-2 rounded-lg font-medium hover:bg-surface transition-all duration-200;
   }
-  
-  .meme-card {
-    @apply glass-card rounded-lg overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer;
-  }
-  
+
   .virality-badge {
-    @apply absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-3 py-1 rounded-full text-xs font-bold;
+    @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .virality-high {
+    @apply bg-gradient-to-r from-red-500 to-orange-500 text-white;
+  }
+
+  .virality-medium {
+    @apply bg-gradient-to-r from-yellow-500 to-orange-500 text-white;
+  }
+
+  .virality-low {
+    @apply bg-gradient-to-r from-blue-500 to-cyan-500 text-white;
   }
 }
 

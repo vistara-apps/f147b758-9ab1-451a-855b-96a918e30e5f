@@ -1,23 +1,23 @@
 # MemeFlow - Base MiniApp
 
-Catch viral memes before they peak with real-time trending content, one-tap social posting, and engagement analytics.
+Catch viral memes before they peak—curated, fresh, and ready to post.
 
 ## Features
 
-- 🔥 Real-time meme feed with virality scores
-- 📊 Analytics dashboard for performance tracking
-- 💎 Premium niche meme collections
-- 🚀 One-tap posting to Farcaster, Twitter, LinkedIn
-- 💰 Base-powered micro-transactions
-- 📱 Mobile-first responsive design
+- 🔥 Real-time trending meme feed with virality scores
+- 💾 Save favorite memes for later
+- 🚀 One-tap social posting to Farcaster, Twitter, LinkedIn
+- ⚡ Micro-transaction payment system via Base
+- 📊 Analytics dashboard (coming soon)
+- 📦 Premium meme collections (coming soon)
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 with App Router
-- **Blockchain**: Base (via OnchainKit)
-- **Styling**: Tailwind CSS
-- **TypeScript**: Full type safety
-- **Wallet**: Coinbase Wallet integration
+- Next.js 15 with App Router
+- React 19
+- OnchainKit for Base integration
+- Tailwind CSS for styling
+- TypeScript for type safety
 
 ## Getting Started
 
@@ -33,79 +33,37 @@ cp .env.local.example .env.local
 
 3. Add your OnchainKit API key to `.env.local`
 
-4. Run development server:
+4. Run the development server:
 ```bash
 npm run dev
 ```
 
 5. Open [http://localhost:3000](http://localhost:3000)
 
+## Theme Support
+
+MemeFlow supports multiple blockchain themes:
+- Default: Vibrant purple/pink gradient
+- Celo: Black & yellow with sharp borders
+- Solana: Dark purple with magenta accents
+- Base: Dark blue with Base blue accents
+- Coinbase: Navy with Coinbase blue
+
+Visit `/theme-preview` to see all themes.
+
 ## Project Structure
 
 ```
 app/
-├── page.tsx              # Main feed
-├── collections/          # Niche meme packs
-├── analytics/            # Performance dashboard
-├── profile/              # User profile
-├── layout.tsx            # Root layout
-├── providers.tsx         # OnchainKit provider
-└── globals.css           # Global styles
-
-components/
-├── Header.tsx            # App header with wallet
-├── BottomNav.tsx         # Mobile navigation
-├── MemeCard.tsx          # Meme display card
-├── FeedShell.tsx         # Feed container
-├── TimeFilter.tsx        # Time window filter
-└── StatsCard.tsx         # Analytics card
+├── components/       # Reusable UI components
+├── page.tsx         # Main feed page
+├── layout.tsx       # Root layout
+├── providers.tsx    # OnchainKit provider
+└── globals.css      # Global styles
 
 lib/
-├── types.ts              # TypeScript types
-└── mock-data.ts          # Sample data
-```
-
-## Key Features Implementation
-
-### Real-Time Meme Feed
-- Displays trending memes from Reddit, Twitter, TikTok
-- Virality scores (0-100) based on engagement velocity
-- Time window filters (1h, 3h, 6h)
-- Save and post actions
-
-### Niche Collections
-- Curated meme packs by category
-- One-time 10 USDC unlock via Base
-- Weekly content updates
-- Categories: Crypto, Startups, Fitness, Gen Z, Dating
-
-### Analytics Dashboard
-- Performance metrics by platform
-- Best posting times
-- Category breakdown
-- Engagement trends
-
-### Base Integration
-- OnchainKit for wallet connection
-- MiniKit for in-frame payments
-- USDC micro-transactions
-- Farcaster social primitives
-
-## Environment Variables
-
-```env
-NEXT_PUBLIC_ONCHAINKIT_API_KEY=your_key_here
-```
-
-Get your API key from [Coinbase Developer Platform](https://portal.cdp.coinbase.com/)
-
-## Deployment
-
-Deploy to Vercel:
-
-```bash
-npm run build
-vercel deploy
+├── types.ts         # TypeScript interfaces
+└── mockData.ts      # Mock data for development
 ```
 
 ## License

@@ -1,24 +1,28 @@
-import type { Metadata } from 'next'
-import './globals.css'
-import { ThemeProvider } from './components/ThemeProvider'
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { Providers } from './providers';
+import { ThemeProvider } from './components/ThemeProvider';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Base Mini App',
-  description: 'Built with Zara',
-}
+  title: 'MemeFlow - Catch Viral Memes Before They Peak',
+  description: 'Real-time trending memes with one-tap social posting and engagement analytics',
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
-      <body>
-        <ThemeProvider defaultTheme="default">
-          {children}
+      <body className={inter.className}>
+        <ThemeProvider>
+          <Providers>{children}</Providers>
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

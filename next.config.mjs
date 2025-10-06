@@ -7,7 +7,12 @@ const nextConfig = {
     ignoreDuringBuilds: false,
   },
   images: {
-    domains: ['i.redd.it', 'preview.redd.it', 'media.giphy.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
 };
 

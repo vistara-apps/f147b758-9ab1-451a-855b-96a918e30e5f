@@ -1,3 +1,4 @@
+// User Data Model
 export interface User {
   fid: string;
   walletAddress: string;
@@ -15,6 +16,7 @@ export interface User {
   };
 }
 
+// Meme Data Model
 export interface Meme {
   memeId: string;
   imageUrl: string;
@@ -28,6 +30,7 @@ export interface Meme {
   discoveredAt: string;
 }
 
+// Meme Collection Data Model
 export interface MemeCollection {
   collectionId: string;
   name: string;
@@ -37,6 +40,7 @@ export interface MemeCollection {
   updatedAt: string;
 }
 
+// Analytics Event Data Model
 export interface AnalyticsEvent {
   eventId: string;
   userId: string;
@@ -47,3 +51,7 @@ export interface AnalyticsEvent {
   comments: number;
   postedAt: string;
 }
+
+// UI State Types
+export type TimeWindow = '1h' | '3h' | '6h';
+export type Category = 'all' | 'crypto' | 'startup' | 'fitness' | 'genz' | 'dating';

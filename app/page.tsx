@@ -1,145 +1,215 @@
 'use client';
 
-import { Header } from '@/components/Header';
-import { BottomNav } from '@/components/BottomNav';
-import { MemeCard } from '@/components/MemeCard';
-import { FeedShell } from '@/components/FeedShell';
-import { TimeFilter } from '@/components/TimeFilter';
-import { StatsCard } from '@/components/StatsCard';
-import { mockMemes } from '@/lib/mock-data';
-import { TrendingUp, Zap, Heart, Share2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Header } from './components/Header';
+import { FilterBar } from './components/FilterBar';
+import { MemeCard } from './components/MemeCard';
+import { PostModal } from './components/PostModal';
+import { PaymentModal } from './components/PaymentModal';
+import { BottomNav } from './components/BottomNav';
+import { mockMemes, mockUser } from '@/lib/mockData';
+import type { Meme, TimeWindow, Category } from '@/lib/types';
+import { Sparkles } from 'lucide-react';
 
-export default function HomePage() {
-  const [timeWindow, setTimeWindow] = useState<'1h' | '3h' | '6h'>('1h');
-  const [savedMemes, setSavedMemes] = useState<string[]>([]);
+export default function Home() {
+  const [activeTab, setActiveTab] = useState('feed');
+  const [timeWindow, setTimeWindow] = useState<TimeWindow>('1h');
+  const [category, setCategory] = useState<Category>('all');
+  const [credits, setCredits] = useState(mockUser.creditsRemaining);
+  const [savedMemes, setSavedMemes] = useState<string[]>(mockUser.savedMemes);
+  const [selectedMeme, setSelectedMeme] = useState<Meme | null>(null);
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
-  const filteredMemes = mockMemes.filter(
-    meme => meme.trendingTimeWindow === timeWindow
-  );
+  // Filter memes based on selected filters
+  const filteredMemes = mockMemes.filter((meme) => {
+    const matchesTimeWindow = meme.trendingTimeWindow === timeWindow;
+    const matchesCategory = category === 'all' || meme.category === category;
+    return matchesTimeWindow && matchesCategory;
+  });
 
-  const handleSaveMeme = (memeId: string) => {
-    setSavedMemes(prev => 
-      prev.includes(memeId) 
-        ? prev.filter(id => id !== memeId)
-        : [...prev, memeId]
-    );
+  // Show toast notification
+  const showNotification = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
+  // Handle save meme
+  const handleSaveMeme = (memeId: string) => {
+    if (savedMemes.includes(memeId)) {
+      setSavedMemes(savedMemes.filter((id) => id !== memeId));
+      showNotification('Meme removed from saved');
+    } else {
+      setSavedMemes([...savedMemes, memeId]);
+      showNotification('Meme saved successfully! 💾');
+    }
+  };
+
+  // Handle post meme
   const handlePostMeme = (memeId: string) => {
-    // In production, this would open the posting modal
-    console.log('Posting meme:', memeId);
+    const meme = mockMemes.find((m) => m.memeId === memeId);
+    if (meme) {
+      setSelectedMeme(meme);
+      setIsPostModalOpen(true);
+    }
+  };
+
+  // Handle post submission
+  const handlePostSubmit = (platform: string, caption: string) => {
+    if (credits > 0) {
+      setCredits(credits - 1);
+      showNotification(`Posted to ${platform}! 🚀`);
+    } else {
+      showNotification('Not enough credits! Buy more to continue.');
+      setIsPaymentModalOpen(true);
+    }
+  };
+
+  // Handle credit purchase
+  const handlePurchase = (type: 'credits' | 'pack', amount: number) => {
+    if (type === 'credits') {
+      setCredits(credits + 1000);
+      showNotification('1000 credits added! ⚡');
+    } else {
+      showNotification('Premium pack unlocked! 📦');
+    }
+    setIsPaymentModalOpen(false);
   };
 
   return (
-    <div className="min-h-screen bg-bg pb-20 lg:pb-0">
-      <Header />
-      
-      <main className="max-w-6xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-bg pb-20">
+      {/* Header */}
+      <Header 
+        credits={credits} 
+        onBuyCredits={() => setIsPaymentModalOpen(true)} 
+      />
+
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         {/* Hero Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">
-            Catch Viral Memes <span className="text-gradient">Before They Peak</span>
-          </h2>
-          <p className="text-text-muted">
-            Real-time trending content with virality scores
-          </p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatsCard
-            icon={TrendingUp}
-            label="Trending Now"
-            value={mockMemes.length}
-            trend={{ value: 12, isPositive: true }}
-          />
-          <StatsCard
-            icon={Zap}
-            label="Avg Virality"
-            value="89"
-            trend={{ value: 5, isPositive: true }}
-          />
-          <StatsCard
-            icon={Heart}
-            label="Saved Memes"
-            value={savedMemes.length}
-          />
-          <StatsCard
-            icon={Share2}
-            label="Posts Today"
-            value="0"
-          />
-        </div>
-
-        {/* Time Filter */}
-        <div className="mb-6">
-          <TimeFilter onFilterChange={setTimeWindow} />
-        </div>
-
-        {/* Meme Feed */}
-        <FeedShell 
-          variant="grid"
-          title="Trending Memes"
-          action={
-            <button className="text-sm text-primary hover:underline">
-              View All
-            </button>
-          }
-        >
-          {filteredMemes.map((meme) => (
-            <MemeCard
-              key={meme.memeId}
-              meme={meme}
-              onSave={handleSaveMeme}
-              onPost={handlePostMeme}
-            />
-          ))}
-        </FeedShell>
-
-        {/* Premium Packs Teaser */}
-        <div className="mt-12">
-          <FeedShell 
-            variant="grid"
-            title="Premium Meme Packs"
-            action={
-              <button className="btn-primary text-sm">
-                View Collections
-              </button>
-            }
-          >
-            {[1, 2, 3, 4].map((i) => (
-              <MemeCard
-                key={i}
-                meme={mockMemes[0]}
-                variant="premium"
-              />
-            ))}
-          </FeedShell>
-        </div>
-
-        {/* CTA Section */}
-        <div className="mt-12 glass-card p-8 rounded-lg text-center">
-          <div className="max-w-2xl mx-auto">
-            <h3 className="text-2xl font-bold mb-3">
-              Ready to Level Up Your Content Game?
-            </h3>
-            <p className="text-text-muted mb-6">
-              Get unlimited access to fresh memes, AI-powered captions, and analytics
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="btn-primary">
-                Buy 1000 Credits - 100 USDC
-              </button>
-              <button className="btn-secondary">
-                Explore Free Tier
-              </button>
+        {activeTab === 'feed' && (
+          <div className="glass-card p-6 text-center space-y-3">
+            <div className="flex items-center justify-center gap-2">
+              <Sparkles className="w-6 h-6 text-accent" />
+              <h2 className="text-2xl font-bold text-gradient">
+                Catch Viral Memes Before They Peak
+              </h2>
             </div>
+            <p className="text-textMuted max-w-2xl mx-auto">
+              Real-time trending memes with one-tap social posting and engagement analytics
+            </p>
           </div>
-        </div>
+        )}
+
+        {/* Feed Tab */}
+        {activeTab === 'feed' && (
+          <>
+            <FilterBar
+              timeWindow={timeWindow}
+              category={category}
+              onTimeWindowChange={setTimeWindow}
+              onCategoryChange={setCategory}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredMemes.map((meme) => (
+                <MemeCard
+                  key={meme.memeId}
+                  meme={meme}
+                  onSave={handleSaveMeme}
+                  onPost={handlePostMeme}
+                  isSaved={savedMemes.includes(meme.memeId)}
+                />
+              ))}
+            </div>
+
+            {filteredMemes.length === 0 && (
+              <div className="glass-card p-12 text-center">
+                <p className="text-textMuted">
+                  No memes found for this filter combination. Try adjusting your filters!
+                </p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Collections Tab */}
+        {activeTab === 'collections' && (
+          <div className="glass-card p-12 text-center">
+            <h3 className="text-xl font-semibold mb-2">Collections Coming Soon</h3>
+            <p className="text-textMuted">
+              Premium meme packs will be available here
+            </p>
+          </div>
+        )}
+
+        {/* Analytics Tab */}
+        {activeTab === 'analytics' && (
+          <div className="glass-card p-12 text-center">
+            <h3 className="text-xl font-semibold mb-2">Analytics Coming Soon</h3>
+            <p className="text-textMuted">
+              Track your meme performance and engagement metrics
+            </p>
+          </div>
+        )}
+
+        {/* Saved Tab */}
+        {activeTab === 'saved' && (
+          <>
+            {savedMemes.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {mockMemes
+                  .filter((meme) => savedMemes.includes(meme.memeId))
+                  .map((meme) => (
+                    <MemeCard
+                      key={meme.memeId}
+                      meme={meme}
+                      onSave={handleSaveMeme}
+                      onPost={handlePostMeme}
+                      isSaved={true}
+                    />
+                  ))}
+              </div>
+            ) : (
+              <div className="glass-card p-12 text-center">
+                <h3 className="text-xl font-semibold mb-2">No Saved Memes</h3>
+                <p className="text-textMuted">
+                  Start saving memes from the feed to see them here
+                </p>
+              </div>
+            )}
+          </>
+        )}
       </main>
 
-      <BottomNav />
+      {/* Bottom Navigation */}
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* Modals */}
+      <PostModal
+        meme={selectedMeme}
+        isOpen={isPostModalOpen}
+        onClose={() => setIsPostModalOpen(false)}
+        onPost={handlePostSubmit}
+      />
+
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onPurchase={handlePurchase}
+      />
+
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 duration-300">
+          <div className="glass-card px-6 py-3 shadow-glow">
+            <p className="text-sm font-medium">{toastMessage}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
