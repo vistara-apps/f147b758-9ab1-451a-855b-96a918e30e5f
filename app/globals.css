@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* MemeFlow Theme - Vibrant & Playful */
+  --color-bg: hsl(240, 12%, 8%);
+  --color-fg: hsl(0, 0%, 98%);
+  --color-accent: hsl(340, 95%, 58%);
+  --color-primary: hsl(260, 85%, 58%);
+  --color-success: hsl(142, 76%, 45%);
+  --color-surface: hsl(240, 10%, 12%);
+  --color-warning: hsl(38, 92%, 50%);
+  --color-text-muted: hsl(240, 5%, 65%);
+  --color-surface-hover: hsl(240, 10%, 16%);
+  
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  
+  --shadow-card: 0 8px 32px hsla(240, 20%, 4%, 0.5);
+  --shadow-glow: 0 0 24px hsla(340, 95%, 58%, 0.4);
+  --shadow-button: 0 4px 12px hsla(260, 85%, 58%, 0.3);
+  
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+}
+
+@layer base {
+  * {
+    @apply border-gray-700;
+  }
+  
+  body {
+    @apply bg-bg text-fg;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-button;
+  }
+  
+  .btn-secondary {
+    @apply glass-card px-6 py-3 rounded-lg font-medium hover:bg-opacity-20 transition-all duration-200;
+  }
+  
+  .btn-ghost {
+    @apply text-fg hover:bg-surface-hover px-4 py-2 rounded-lg transition-all duration-200;
+  }
+  
+  .meme-card {
+    @apply glass-card rounded-lg overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer;
+  }
+  
+  .virality-badge {
+    @apply absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-3 py-1 rounded-full text-xs font-bold;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent;
+  }
+}
