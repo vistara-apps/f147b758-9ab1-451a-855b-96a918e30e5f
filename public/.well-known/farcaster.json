@@ -10,7 +10,7 @@
     "subtitle": "Built with Zara",
     "description": "MemeFlow is a Base Mini App built with Zara.",
     "iconUrl": "https://0co.to/images/zara-2.png",
-    "homeUrl": "https://f147b7589ab1451a855b96a918e30e5f-17ek.vercel.app",
+    "homeUrl": "https://f147b7589ab1451a855b96a918e30e5f-9o7t.vercel.app",
     "splashImageUrl": "https://f147b7589ab1451a855b96a918e30e5f-xya0.vercel.app/splash.png",
     "splashBackgroundColor": "#000000",
     "heroImageUrl": "https://f147b7589ab1451a855b96a918e30e5f-xya0.vercel.app/image.png",
@@ -25,6 +25,6 @@
       "miniapp",
       "onchainkit"
     ],
-    "webhookUrl": "https://f147b7589ab1451a855b96a918e30e5f-17ek.vercel.app/api/webhook"
+    "webhookUrl": "https://f147b7589ab1451a855b96a918e30e5f-9o7t.vercel.app/api/webhook"
   }
 }
