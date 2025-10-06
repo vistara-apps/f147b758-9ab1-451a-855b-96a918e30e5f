@@ -7,28 +7,68 @@ import { MemeCard } from './components/MemeCard';
 import { PostModal } from './components/PostModal';
 import { PaymentModal } from './components/PaymentModal';
 import { BottomNav } from './components/BottomNav';
-import { mockMemes, mockUser } from '@/lib/mockData';
-import type { Meme, TimeWindow, Category } from '@/lib/types';
-import { Sparkles } from 'lucide-react';
+import { memeService } from '@/lib/meme-service';
+import { userService } from '@/lib/user-service';
+import { creditService } from '@/lib/credit-service';
+import { farcasterAPI } from '@/lib/api/farcaster';
+import type { Meme, TimeWindow, Category, User } from '@/lib/types';
+import { Sparkles, Loader2 } from 'lucide-react';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('feed');
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('1h');
   const [category, setCategory] = useState<Category>('all');
-  const [credits, setCredits] = useState(mockUser.creditsRemaining);
-  const [savedMemes, setSavedMemes] = useState<string[]>(mockUser.savedMemes);
+  const [memes, setMemes] = useState<Meme[]>([]);
+  const [savedMemes, setSavedMemes] = useState<string[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [selectedMeme, setSelectedMeme] = useState<Meme | null>(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [fid, setFid] = useState<string>('demo-user'); // In real app, get from MiniKit
 
-  // Filter memes based on selected filters
-  const filteredMemes = mockMemes.filter((meme) => {
-    const matchesTimeWindow = meme.trendingTimeWindow === timeWindow;
-    const matchesCategory = category === 'all' || meme.category === category;
-    return matchesTimeWindow && matchesCategory;
-  });
+  // Load user data and memes on mount
+  useEffect(() => {
+    loadUserData();
+    loadMemes();
+  }, []);
+
+  // Reload memes when filters change
+  useEffect(() => {
+    if (!isLoading) {
+      loadMemes();
+    }
+  }, [timeWindow, category]);
+
+  const loadUserData = async () => {
+    try {
+      const userData = await userService.getOrCreateUser(fid);
+      if (userData) {
+        setUser(userData);
+        setSavedMemes(userData.savedMemes);
+      }
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+    }
+  };
+
+  const loadMemes = async () => {
+    try {
+      setIsLoading(true);
+      const fetchedMemes = await memeService.getTrendingMemes(timeWindow, category);
+      setMemes(fetchedMemes);
+    } catch (error) {
+      console.error('Failed to load memes:', error);
+      showNotification('Failed to load memes. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Filter memes based on selected filters (already filtered by service)
+  const filteredMemes = memes;
 
   // Show toast notification
   const showNotification = (message: string) => {
@@ -38,19 +78,26 @@ export default function Home() {
   };
 
   // Handle save meme
-  const handleSaveMeme = (memeId: string) => {
-    if (savedMemes.includes(memeId)) {
-      setSavedMemes(savedMemes.filter((id) => id !== memeId));
-      showNotification('Meme removed from saved');
-    } else {
-      setSavedMemes([...savedMemes, memeId]);
-      showNotification('Meme saved successfully! 💾');
+  const handleSaveMeme = async (memeId: string) => {
+    try {
+      if (savedMemes.includes(memeId)) {
+        await userService.unsaveMemeForUser(fid, memeId);
+        setSavedMemes(savedMemes.filter((id) => id !== memeId));
+        showNotification('Meme removed from saved');
+      } else {
+        await userService.saveMemeForUser(fid, memeId);
+        setSavedMemes([...savedMemes, memeId]);
+        showNotification('Meme saved successfully! 💾');
+      }
+    } catch (error) {
+      console.error('Failed to save/unsave meme:', error);
+      showNotification('Failed to save meme. Please try again.');
     }
   };
 
   // Handle post meme
   const handlePostMeme = (memeId: string) => {
-    const meme = mockMemes.find((m) => m.memeId === memeId);
+    const meme = memes.find((m) => m.memeId === memeId);
     if (meme) {
       setSelectedMeme(meme);
       setIsPostModalOpen(true);
@@ -58,23 +105,68 @@ export default function Home() {
   };
 
   // Handle post submission
-  const handlePostSubmit = (platform: string, caption: string) => {
-    if (credits > 0) {
-      setCredits(credits - 1);
-      showNotification(`Posted to ${platform}! 🚀`);
-    } else {
-      showNotification('Not enough credits! Buy more to continue.');
-      setIsPaymentModalOpen(true);
+  const handlePostSubmit = async (platform: string, caption: string) => {
+    try {
+      const creditCheck = await creditService.checkCreditsForAction(fid, 1);
+      if (!creditCheck.hasEnough) {
+        showNotification('Not enough credits! Buy more to continue.');
+        setIsPaymentModalOpen(true);
+        return;
+      }
+
+      // Deduct credits
+      const spendResult = await creditService.spendCredits(fid, 1, 'Meme posting');
+      if (!spendResult.success) {
+        showNotification('Failed to process credits. Please try again.');
+        return;
+      }
+
+      // Post to selected platform
+      if (platform === 'farcaster' && selectedMeme) {
+        const postResult = await farcasterAPI.publishCast(caption, selectedMeme.imageUrl);
+        if (postResult.success) {
+          showNotification(`Posted to ${platform}! 🚀`);
+        } else {
+          showNotification(`Failed to post to ${platform}. Please try again.`);
+          // Refund credits on failure
+          await creditService.addCredits(fid, 1, 'Refund for failed post');
+        }
+      } else {
+        // Mock posting for other platforms
+        showNotification(`Posted to ${platform}! 🚀`);
+      }
+
+      // Update local user state
+      if (user) {
+        setUser({ ...user, creditsRemaining: spendResult.remainingCredits || 0 });
+      }
+    } catch (error) {
+      console.error('Failed to post meme:', error);
+      showNotification('Failed to post meme. Please try again.');
     }
   };
 
   // Handle credit purchase
-  const handlePurchase = (type: 'credits' | 'pack', amount: number) => {
-    if (type === 'credits') {
-      setCredits(credits + 1000);
-      showNotification('1000 credits added! ⚡');
-    } else {
-      showNotification('Premium pack unlocked! 📦');
+  const handlePurchase = async (type: 'credits' | 'pack', amount: number) => {
+    try {
+      if (type === 'credits') {
+        const creditsToAdd = creditService.calculateCreditsFromUSD(amount);
+        const result = await creditService.addCredits(fid, creditsToAdd, 'Credit purchase');
+        if (result.success) {
+          showNotification(`${creditsToAdd} credits added! ⚡`);
+          if (user) {
+            setUser({ ...user, creditsRemaining: result.newTotal || 0 });
+          }
+        } else {
+          showNotification('Failed to add credits. Please try again.');
+        }
+      } else {
+        // Handle pack purchase
+        showNotification('Premium pack unlocked! 📦');
+      }
+    } catch (error) {
+      console.error('Failed to process purchase:', error);
+      showNotification('Failed to process purchase. Please try again.');
     }
     setIsPaymentModalOpen(false);
   };
@@ -82,9 +174,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-bg pb-20">
       {/* Header */}
-      <Header 
-        credits={credits} 
-        onBuyCredits={() => setIsPaymentModalOpen(true)} 
+      <Header
+        credits={user?.creditsRemaining || 0}
+        onBuyCredits={() => setIsPaymentModalOpen(true)}
       />
 
       {/* Main Content */}
@@ -114,17 +206,24 @@ export default function Home() {
               onCategoryChange={setCategory}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredMemes.map((meme) => (
-                <MemeCard
-                  key={meme.memeId}
-                  meme={meme}
-                  onSave={handleSaveMeme}
-                  onPost={handlePostMeme}
-                  isSaved={savedMemes.includes(meme.memeId)}
-                />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <span className="ml-2 text-textMuted">Loading trending memes...</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredMemes.map((meme) => (
+                  <MemeCard
+                    key={meme.memeId}
+                    meme={meme}
+                    onSave={handleSaveMeme}
+                    onPost={handlePostMeme}
+                    isSaved={savedMemes.includes(meme.memeId)}
+                  />
+                ))}
+              </div>
+            )}
 
             {filteredMemes.length === 0 && (
               <div className="glass-card p-12 text-center">
@@ -161,7 +260,7 @@ export default function Home() {
           <>
             {savedMemes.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {mockMemes
+                {memes
                   .filter((meme) => savedMemes.includes(meme.memeId))
                   .map((meme) => (
                     <MemeCard
