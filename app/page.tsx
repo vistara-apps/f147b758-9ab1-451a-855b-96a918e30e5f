@@ -7,14 +7,18 @@ import { MemeCard } from './components/MemeCard';
 import { PostModal } from './components/PostModal';
 import { PaymentModal } from './components/PaymentModal';
 import { BottomNav } from './components/BottomNav';
-import { mockMemes, mockUser } from '@/lib/mockData';
+import { mockUser } from '@/lib/mockData';
 import type { Meme, TimeWindow, Category } from '@/lib/types';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
+import { useAuth } from './providers/AuthProvider';
 
 export default function Home() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('feed');
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('1h');
   const [category, setCategory] = useState<Category>('all');
+  const [memes, setMemes] = useState<Meme[]>([]);
+  const [filteredMemes, setFilteredMemes] = useState<Meme[]>([]);
   const [credits, setCredits] = useState(mockUser.creditsRemaining);
   const [savedMemes, setSavedMemes] = useState<string[]>(mockUser.savedMemes);
   const [selectedMeme, setSelectedMeme] = useState<Meme | null>(null);
@@ -22,13 +26,75 @@ export default function Home() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [isLoadingMemes, setIsLoadingMemes] = useState(true);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
 
-  // Filter memes based on selected filters
-  const filteredMemes = mockMemes.filter((meme) => {
-    const matchesTimeWindow = meme.trendingTimeWindow === timeWindow;
-    const matchesCategory = category === 'all' || meme.category === category;
-    return matchesTimeWindow && matchesCategory;
-  });
+  // Fetch memes from APIs
+  useEffect(() => {
+    fetchMemes();
+  }, []);
+
+  // Filter memes when filters change
+  useEffect(() => {
+    const filtered = memes.filter((meme) => {
+      const matchesTimeWindow = meme.trendingTimeWindow === timeWindow;
+      const matchesCategory = category === 'all' || meme.category === category;
+      return matchesTimeWindow && matchesCategory;
+    });
+    setFilteredMemes(filtered);
+  }, [memes, timeWindow, category]);
+
+  const fetchMemes = async () => {
+    try {
+      setIsLoadingMemes(true);
+      setLoadingError(null);
+
+      // Fetch from multiple sources
+      const [redditResponse, twitterResponse, giphyResponse] = await Promise.allSettled([
+        fetch(`/api/memes/reddit?limit=20&timeWindow=${timeWindow}`),
+        fetch(`/api/memes/twitter?limit=15`),
+        fetch(`/api/memes/giphy?limit=10`),
+      ]);
+
+      const allMemes: Meme[] = [];
+
+      // Process Reddit memes
+      if (redditResponse.status === 'fulfilled') {
+        const redditData = await redditResponse.value.json();
+        if (redditData.success) {
+          allMemes.push(...redditData.data);
+        }
+      }
+
+      // Process Twitter memes
+      if (twitterResponse.status === 'fulfilled') {
+        const twitterData = await twitterResponse.value.json();
+        if (twitterData.success) {
+          allMemes.push(...twitterData.data);
+        }
+      }
+
+      // Process Giphy memes
+      if (giphyResponse.status === 'fulfilled') {
+        const giphyData = await giphyResponse.value.json();
+        if (giphyData.success) {
+          allMemes.push(...giphyData.data);
+        }
+      }
+
+      // Sort by virality score and limit total
+      const sortedMemes = allMemes
+        .sort((a, b) => b.viralityScore - a.viralityScore)
+        .slice(0, 50);
+
+      setMemes(sortedMemes);
+    } catch (error) {
+      console.error('Failed to fetch memes:', error);
+      setLoadingError('Failed to load memes. Please try again.');
+    } finally {
+      setIsLoadingMemes(false);
+    }
+  };
 
   // Show toast notification
   const showNotification = (message: string) => {
@@ -114,24 +180,43 @@ export default function Home() {
               onCategoryChange={setCategory}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredMemes.map((meme) => (
-                <MemeCard
-                  key={meme.memeId}
-                  meme={meme}
-                  onSave={handleSaveMeme}
-                  onPost={handlePostMeme}
-                  isSaved={savedMemes.includes(meme.memeId)}
-                />
-              ))}
-            </div>
-
-            {filteredMemes.length === 0 && (
-              <div className="glass-card p-12 text-center">
-                <p className="text-textMuted">
-                  No memes found for this filter combination. Try adjusting your filters!
-                </p>
+            {isLoadingMemes ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-accent" />
+                <span className="ml-2 text-textMuted">Loading trending memes...</span>
               </div>
+            ) : loadingError ? (
+              <div className="glass-card p-12 text-center">
+                <p className="text-red-400 mb-4">{loadingError}</p>
+                <button
+                  onClick={fetchMemes}
+                  className="btn-primary"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredMemes.map((meme) => (
+                    <MemeCard
+                      key={meme.memeId}
+                      meme={meme}
+                      onSave={handleSaveMeme}
+                      onPost={handlePostMeme}
+                      isSaved={savedMemes.includes(meme.memeId)}
+                    />
+                  ))}
+                </div>
+
+                {filteredMemes.length === 0 && !isLoadingMemes && (
+                  <div className="glass-card p-12 text-center">
+                    <p className="text-textMuted">
+                      No memes found for this filter combination. Try adjusting your filters!
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
@@ -161,7 +246,7 @@ export default function Home() {
           <>
             {savedMemes.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {mockMemes
+                {memes
                   .filter((meme) => savedMemes.includes(meme.memeId))
                   .map((meme) => (
                     <MemeCard
