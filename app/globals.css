@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 :root {
-  /* MemeFlow Theme - Vibrant Purple/Pink Gradient */
+  /* MemeFlow Design System Colors */
+  --color-primary: hsl(260, 85%, 58%);
+  --color-accent: hsl(340, 95%, 58%);
   --color-bg: hsl(240, 12%, 8%);
-  --color-fg: hsl(0, 0%, 98%);
-  --color-accent: hsl(260, 85%, 58%);
   --color-surface: hsl(240, 10%, 12%);
   --color-surface-hover: hsl(240, 10%, 16%);
+  --color-text: hsl(0, 0%, 98%);
   --color-text-muted: hsl(240, 5%, 65%);
   --color-success: hsl(142, 76%, 45%);
   --color-warning: hsl(38, 92%, 50%);
-  --color-accent-secondary: hsl(340, 95%, 58%);
 }
 
 [data-theme="celo"] {

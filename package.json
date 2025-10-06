@@ -23,7 +23,15 @@
     "@react-native-async-storage/async-storage": "^1.24.0",
     "tailwindcss": "^3.4.1",
     "pino-pretty": "^10.3.1",
-    "postcss": "^8"
+    "postcss": "^8",
+    "openai": "^4.52.7",
+    "axios": "^1.7.2",
+    "zod": "^3.23.8",
+    "framer-motion": "^11.5.4",
+    "recharts": "^2.12.7",
+    "date-fns": "^3.6.0",
+    "uuid": "^10.0.0",
+    "@types/uuid": "^10.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
