@@ -10,14 +10,14 @@
     "subtitle": "Built with Zara",
     "description": "MemeFlow is a Base Mini App built with Zara.",
     "iconUrl": "https://0co.to/images/zara-2.png",
-    "homeUrl": "https://f147b758-9ab1-451a-855b-96a918e30e5f.vercel.app",
-    "splashImageUrl": "https://dummyimage.com/200x200/0a0b0d/ffffff.png&text=Splash",
+    "homeUrl": "https://f147b7589ab1451a855b96a918e30e5f-xya0.vercel.app",
+    "splashImageUrl": "https://f147b7589ab1451a855b96a918e30e5f-xya0.vercel.app/splash.png",
     "splashBackgroundColor": "#000000",
-    "heroImageUrl": "https://dummyimage.com/1200x628/0a0b0d/ffffff.png&text=Hero",
+    "heroImageUrl": "https://f147b7589ab1451a855b96a918e30e5f-xya0.vercel.app/image.png",
     "tagline": "MemeFlow",
     "screenshotUrls": [
-      "https://dummyimage.com/1200x628/0a0b0d/ffffff.png&text=Shot1",
-      "https://dummyimage.com/1200x628/0a0b0d/ffffff.png&text=Shot2"
+      "https://f147b7589ab1451a855b96a918e30e5f-xya0.vercel.app/screenshot.png",
+      "https://f147b7589ab1451a855b96a918e30e5f-xya0.vercel.app/screenshot.png"
     ],
     "primaryCategory": "social",
     "tags": [
@@ -25,6 +25,6 @@
       "miniapp",
       "onchainkit"
     ],
-    "webhookUrl": "https://f147b758-9ab1-451a-855b-96a918e30e5f.vercel.app/api/webhook"
+    "webhookUrl": "https://f147b7589ab1451a855b96a918e30e5f-xya0.vercel.app/api/webhook"
   }
 }
