@@ -1,4 +1,3 @@
-// User Data Model
 export interface User {
   fid: string;
   walletAddress: string;
@@ -12,11 +11,14 @@ export interface User {
   };
   preferences: {
     niches: string[];
-    notificationSettings: boolean;
+    notificationSettings: {
+      viralAlerts: boolean;
+      newPacks: boolean;
+      lowCredits: boolean;
+    };
   };
 }
 
-// Meme Data Model
 export interface Meme {
   memeId: string;
   imageUrl: string;
@@ -24,13 +26,12 @@ export interface Meme {
   platform: 'reddit' | 'twitter' | 'tiktok';
   viralityScore: number;
   trendingTimeWindow: '1h' | '3h' | '6h';
-  category: 'crypto' | 'startup' | 'fitness' | 'genz' | 'dating';
+  category: string;
   captionSuggestions: string[];
   engagementVelocity: number;
   discoveredAt: string;
 }
 
-// Meme Collection Data Model
 export interface MemeCollection {
   collectionId: string;
   name: string;
@@ -40,7 +41,6 @@ export interface MemeCollection {
   updatedAt: string;
 }
 
-// Analytics Event Data Model
 export interface AnalyticsEvent {
   eventId: string;
   userId: string;
@@ -52,6 +52,19 @@ export interface AnalyticsEvent {
   postedAt: string;
 }
 
-// UI State Types
-export type TimeWindow = '1h' | '3h' | '6h';
-export type Category = 'all' | 'crypto' | 'startup' | 'fitness' | 'genz' | 'dating';
+export interface FrameAction {
+  action: string;
+  label: string;
+  variant: 'primary' | 'secondary' | 'ghost';
+  handler: () => void;
+}
+
+export interface Notification {
+  id: string;
+  type: 'viral_meme' | 'new_pack' | 'low_credits';
+  title: string;
+  message: string;
+  actionUrl?: string;
+  timestamp: string;
+}
+

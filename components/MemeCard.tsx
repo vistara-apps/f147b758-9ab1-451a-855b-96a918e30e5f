@@ -1,27 +1,17 @@
 'use client';
 
 import { Meme } from '@/lib/types';
-import { Heart, Share2, Bookmark } from 'lucide-react';
-import { useState } from 'react';
+import { ActionButtons } from '@/app/components/ActionButtons';
 
 interface MemeCardProps {
   meme: Meme;
-  onSave?: (memeId: string) => void;
-  onPost?: (memeId: string) => void;
+  onSave?: () => void;
+  onPost?: () => void;
+  fid: string | null;
   variant?: 'default' | 'compact' | 'premium';
 }
 
-export function MemeCard({ meme, onSave, onPost, variant = 'default' }: MemeCardProps) {
-  const [isSaved, setIsSaved] = useState(false);
-
-  const handleSave = () => {
-    setIsSaved(!isSaved);
-    onSave?.(meme.memeId);
-  };
-
-  const handlePost = () => {
-    onPost?.(meme.memeId);
-  };
+export function MemeCard({ meme, onSave, onPost, fid, variant = 'default' }: MemeCardProps) {
 
   if (variant === 'compact') {
     return (
@@ -76,31 +66,14 @@ export function MemeCard({ meme, onSave, onPost, variant = 'default' }: MemeCard
             <p className="text-sm font-medium capitalize">{meme.category}</p>
             <p className="text-xs text-text-muted">{meme.engagementVelocity} likes/hr</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={handleSave}
-              className={`p-2 rounded-lg transition-all duration-200 ${
-                isSaved 
-                  ? 'bg-accent text-white' 
-                  : 'glass-card hover:bg-surface-hover'
-              }`}
-            >
-              <Bookmark className="w-4 h-4" />
-            </button>
-          </div>
         </div>
-        
-        <div className="space-y-2">
-          <button
-            onClick={handlePost}
-            className="btn-primary w-full text-sm"
-          >
-            Post Now
-          </button>
-          <button className="btn-secondary w-full text-sm">
-            View Captions
-          </button>
-        </div>
+
+        <ActionButtons
+          memeId={meme.memeId}
+          fid={fid}
+          onSave={onSave}
+          onPost={onPost}
+        />
       </div>
     </div>
   );

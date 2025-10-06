@@ -1,105 +1,110 @@
 'use client';
 
-import { X, Zap, Package } from 'lucide-react';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CreditCard, Package } from 'lucide-react';
+import { usePayments } from '@/lib/hooks/usePayments';
+import { useAuth } from './AuthProvider';
 
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPurchase: (type: 'credits' | 'pack', amount: number) => void;
+  onSuccess?: () => void;
 }
 
-export function PaymentModal({ isOpen, onClose, onPurchase }: PaymentModalProps) {
-  if (!isOpen) return null;
+export function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModalProps) {
+  const [selectedOption, setSelectedOption] = useState<'credits' | 'pack' | null>(null);
+  const { purchaseCredits, purchasePack, isProcessing } = usePayments();
+  const { user } = useAuth();
 
-  const options = [
-    {
-      type: 'credits' as const,
-      title: '1000 Credits',
-      description: 'Unlimited fresh memes for 30 days',
-      price: 100,
-      icon: Zap,
-      popular: true,
-    },
-    {
-      type: 'pack' as const,
-      title: 'Premium Pack',
-      description: '50 curated niche memes',
-      price: 10,
-      icon: Package,
-      popular: false,
-    },
-  ];
+  const handlePurchase = async () => {
+    if (!user || !selectedOption) return;
+
+    try {
+      if (selectedOption === 'credits') {
+        await purchaseCredits(user.fid, 100, 'credit_purchase_100');
+      } else if (selectedOption === 'pack') {
+        await purchasePack(user.fid, 'crypto-pack'); // Default to crypto pack
+      }
+
+      onSuccess?.();
+      onClose();
+    } catch (error) {
+      console.error('Purchase failed:', error);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="glass-card max-w-2xl w-full">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="text-xl font-semibold">Buy Credits</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-surface rounded-lg transition-colors duration-200"
-            aria-label="Close"
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Buy Credits</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <Card
+            className={`cursor-pointer transition-colors ${
+              selectedOption === 'credits' ? 'ring-2 ring-primary' : ''
+            }`}
+            onClick={() => setSelectedOption('credits')}
           >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-4">
-          {options.map((option) => {
-            const Icon = option.icon;
-            return (
-              <div
-                key={option.type}
-                className={`relative p-6 rounded-lg border-2 transition-all duration-200 ${
-                  option.popular
-                    ? 'border-accent bg-accent/5'
-                    : 'border-white/10 bg-surface hover:bg-surfaceHover'
-                }`}
-              >
-                {option.popular && (
-                  <div className="absolute -top-3 left-4 px-3 py-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-xs font-semibold">
-                    Most Popular
-                  </div>
-                )}
-                
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-accent/20 rounded-lg">
-                      <Icon className="w-6 h-6 text-accent" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-1">{option.title}</h3>
-                      <p className="text-sm text-textMuted">{option.description}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-gradient mb-2">
-                      ${option.price}
-                    </div>
-                    <button
-                      onClick={() => onPurchase(option.type, option.price)}
-                      className="btn-primary text-sm"
-                    >
-                      Purchase
-                    </button>
-                  </div>
-                </div>
+            <CardHeader className="pb-3">
+              <div className="flex items-center space-x-2">
+                <CreditCard className="w-5 h-5" />
+                <CardTitle className="text-lg">1000 Credits</CardTitle>
               </div>
-            );
-          })}
+              <CardDescription>
+                Unlimited meme access for 30 days
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">100 USDC</div>
+              <div className="text-sm text-muted-foreground">
+                ~$100 worth of credits
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Info */}
-          <div className="p-4 bg-surface/50 rounded-lg border border-white/10">
-            <p className="text-sm text-textMuted">
-              💡 Payments are processed securely via Base network using USDC. 
-              Transactions typically complete in under 5 seconds.
-            </p>
+          <Card
+            className={`cursor-pointer transition-colors ${
+              selectedOption === 'pack' ? 'ring-2 ring-primary' : ''
+            }`}
+            onClick={() => setSelectedOption('pack')}
+          >
+            <CardHeader className="pb-3">
+              <div className="flex items-center space-x-2">
+                <Package className="w-5 h-5" />
+                <CardTitle className="text-lg">Crypto Memes Pack</CardTitle>
+              </div>
+              <CardDescription>
+                50 curated crypto memes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">10 USDC</div>
+              <div className="text-sm text-muted-foreground">
+                One-time purchase
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" onClick={onClose} className="flex-1">
+              Cancel
+            </Button>
+            <Button
+              onClick={handlePurchase}
+              disabled={!selectedOption || isProcessing}
+              className="flex-1"
+            >
+              {isProcessing ? 'Processing...' : 'Pay with Base Wallet'}
+            </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
+
